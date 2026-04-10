@@ -1,6 +1,8 @@
 #include "spark_fast_lio.h"
 
 #include <cmath>
+#include <filesystem>
+#include <iomanip>
 #include <stdexcept>
 
 #include <omp.h>
@@ -74,6 +76,7 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   extrinsic_est_en_     = declare_parameter<bool>("mapping.extrinsic_est_en", false);
   extrinsics_timeout_s_ = declare_parameter<double>("extrinsics_timeout_s", 10.0);
   pcd_save_en_          = declare_parameter<bool>("pcd_save.pcd_save_en", false);
+  pcd_save_path_        = declare_parameter<std::string>("pcd_save.save_path", "");
   pcd_save_interval_    = declare_parameter<int>("pcd_save.interval", -1);
   map_pub_interval_     = declare_parameter<int>("publish.map_pub_interval", 10);
 
@@ -179,6 +182,17 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   laser_cloud_ori_.reset(new PointCloudXYZI(100000, 1));
   corr_normvec_.reset(new PointCloudXYZI(100000, 1));
   cloud_to_be_saved_.reset(new PointCloudXYZI());
+
+  if (pcd_save_en_) {
+    if (pcd_save_path_.empty()) {
+      pcd_save_path_ = std::string(ROOT_DIR) + "PCD";
+    }
+    std::filesystem::create_directories(pcd_save_path_);
+    poses_file_.open(pcd_save_path_ + "/poses.txt");
+    poses_file_ << "# index tx ty tz qx qy qz qw" << std::endl;
+    poses_file_ << std::fixed << std::setprecision(6);
+    RCLCPP_INFO(this->get_logger(), "Saving scans and poses to: %s", pcd_save_path_.c_str());
+  }
 
   if (!base_frame_.empty()) {
     if (!lookupBaseExtrinsics(lidar_T_wrt_base_, lidar_R_wrt_base_)) {
@@ -835,7 +849,7 @@ void SPARKFastLIO2::publishFrameWorld(
       pclPointBodyToWorld(&cloud_undistort_->points[i], &laserCloudWorld2->points[i]);
     }
     if (pcd_save_interval_ > 0) {
-      *cloud_to_be_saved_ += *laserCloudWorld2;  // see below if you store that as a member
+      *cloud_to_be_saved_ += *laserCloudWorld2;
     }
 
     static int scan_wait_num = 0;
@@ -843,13 +857,18 @@ void SPARKFastLIO2::publishFrameWorld(
     if (cloud_to_be_saved_->size() > 0 && pcd_save_interval_ > 0 &&
         scan_wait_num >= pcd_save_interval_) {
       pcd_index_++;
-      std::string all_points_dir(std::string(ROOT_DIR) + "PCD/scans_" + std::to_string(pcd_index_) +
-                                 ".pcd");
+      std::string pcd_file = pcd_save_path_ + "/scans_" + std::to_string(pcd_index_) + ".pcd";
       pcl::PCDWriter pcd_writer;
-      std::cout << "Current scan saved to /PCD/ " << all_points_dir << std::endl;
-      pcd_writer.writeBinary(all_points_dir, *cloud_to_be_saved_);
+      pcd_writer.writeBinary(pcd_file, *cloud_to_be_saved_);
       cloud_to_be_saved_->clear();
       scan_wait_num = 0;
+
+      // Save corresponding pose
+      const auto &p = latest_state_.pos;
+      auto q = latest_state_.rot.coeffs();  // x, y, z, w
+      poses_file_ << pcd_index_ << " "
+                  << p(0) << " " << p(1) << " " << p(2) << " "
+                  << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << std::endl;
     }
   }
 }

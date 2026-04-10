@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <fstream>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -202,6 +203,8 @@ class SPARKFastLIO2 : public rclcpp::Node {
   int kdtree_delete_counter_ = 0;
 
   bool pcd_save_en_       = false;
+  std::string pcd_save_path_;
+  std::ofstream poses_file_;
   bool time_sync_en_      = false;
   bool extrinsic_est_en_  = false;
   bool path_en_           = true;
