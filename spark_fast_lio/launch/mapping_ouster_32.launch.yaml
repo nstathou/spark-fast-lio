@@ -14,7 +14,7 @@ launch:
 
       remap:
         - { from: 'lidar', to: '/husky/ouster/points' }
-        - { from: 'imu',   to: '/husky/ouster/imu' }
+        - { from: 'imu',   to: '/husky/vectornav/imu' }
 
       param:
         - name: "common.lidar_frame"

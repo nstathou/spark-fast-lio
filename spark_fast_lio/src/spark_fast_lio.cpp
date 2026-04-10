@@ -945,7 +945,7 @@ bool SPARKFastLIO2::syncPackages(MeasureGroup &meas, bool verbose) {
     } else {
       scan_num_++;
       if (meas.lidar->points.back().curvature < 80 || meas.lidar->points.back().curvature > 120) {
-        RCLCPP_WARN(this->get_logger(),
+        RCLCPP_WARN_ONCE(this->get_logger(),
                     "meas.lidar->points.back().curvature (%.2f) should be close to 100. Please "
                     "check the `timestamp_unit` "
                     "or values of `time` (or `t`) field of the point cloud input from your sensor.",

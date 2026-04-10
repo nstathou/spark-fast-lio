@@ -5,8 +5,8 @@
       scan_line: 32
       scan_rate: 10               # only need to be set for velodyne, unit: Hz,
       timestamp_unit: 3           # the unit of time/t field in the PointCloud2 rostopic: 0-second, 1-milisecond, 2-microsecond, 3-nanosecond.
-      blind: 1.0
-      blind_for_human_pilot: 1.0  # This parameter is to reject cloud points from human pilots
+      blind: 4.0
+      blind_for_human_pilot: 4.0  # This parameter is to reject cloud points from human pilots
 
     mapping:
       acc_cov: 0.1
@@ -26,7 +26,7 @@
       #  - [0.0, 0.0, 0.0, 1.0]
       # However, this matrix is tranformation of IMU w.r.t. LiDAR frame.
       # What we need is transformation LiDAR w.r.t. (or to) IMU frame; thus, the inverse matrix should be given
-      extrinsic_T: [0.0, 0.0, 0.0]
+      extrinsic_T: [0.0, 0.0, 0.06]
       extrinsic_R: [1.0, 0.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]
@@ -38,7 +38,7 @@
       scan_publish_en: true        # false: close all the point cloud output
       dense_publish_en: true       # false: low down the points number in a global-frame point clouds scan.
       scan_lidarframe_pub_en: true # true: output the point cloud scans in the LiDAR frame
-      scan_bodyframe_pub_en: true  # true: output the point cloud scans in IMU-body frame
+      scan_bodyframe_pub_en: false  # true: output the point cloud scans in IMU-body frame
       scan_baseframe_pub_en: false  # true: output the point cloud scans in the base frame
 
     pcd_save:
@@ -46,8 +46,9 @@
       interval: -1                 # how many LiDAR frames saved in each pcd file;
       # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
 
-    verbose: true
-    runtime_pos_log_enable: false
+    verbose: false
+    pcl_verbose: false
+    runtime_pos_log_enable: true
     point_filter_num_for_preprocessing: 1 # If it is set to `1`, full point cloud gonna be publlished
     point_filter_num: 4                   # For pose estimation.
     max_iteration: 4
