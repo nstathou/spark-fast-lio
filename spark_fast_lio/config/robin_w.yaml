@@ -20,8 +20,8 @@
       gyr_cov: 0.1
       b_acc_cov: 0.0001
       b_gyr_cov: 0.0001
-      fov_degree: 360.0
-      det_range: 120.0
+      fov_degree: 120.0
+      det_range: 100.0
       extrinsic_est_en: false      # true: enable the online estimation of IMU-LiDAR extrinsic,
 
       # NOTE(hlim): In `vbr_calib.yaml`, it says:
@@ -33,12 +33,12 @@
       #  - [0.0, 0.0, 0.0, 1.0]
       # However, this matrix is tranformation of IMU w.r.t. LiDAR frame.
       # What we need is transformation LiDAR w.r.t. (or to) IMU frame; thus, the inverse matrix should be given
-      extrinsic_T: [0.0, 0.0, 0.06]
+      extrinsic_T: [0.0, 0.0, 0.16]
       extrinsic_R: [1.0, 0.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]
 
-    filter_size_map: 0.1 #0.5
+    filter_size_map: 0.5
 
     topics:
       # Subscribers
@@ -60,7 +60,7 @@
       scan_lidarframe_pub_en: true # true: output the point cloud scans in the LiDAR frame
       scan_bodyframe_pub_en: false  # true: output the point cloud scans in IMU-body frame
       scan_baseframe_pub_en: false  # true: output the point cloud scans in the base frame
-      map_pub_interval: 20          # publish map every N scans (0 to disable)
+      map_pub_interval: 10          # publish map every N scans (0 to disable)
 
     pcd_save:
       pcd_save_en: false
