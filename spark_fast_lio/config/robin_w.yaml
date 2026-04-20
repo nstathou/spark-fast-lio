@@ -20,9 +20,9 @@
       gyr_cov: 0.1
       b_acc_cov: 0.0001
       b_gyr_cov: 0.0001
-      fov_degree: 360.0
-      det_range: 120.0
-      extrinsic_est_en: false      # true: enable the online estimation of IMU-LiDAR extrinsic,
+      fov_degree: 120.0
+      det_range: 100.0
+      extrinsic_est_en: true      # true: enable the online estimation of IMU-LiDAR extrinsic,
 
       # NOTE(hlim): In `vbr_calib.yaml`, it says:
       #imu:
@@ -33,12 +33,12 @@
       #  - [0.0, 0.0, 0.0, 1.0]
       # However, this matrix is tranformation of IMU w.r.t. LiDAR frame.
       # What we need is transformation LiDAR w.r.t. (or to) IMU frame; thus, the inverse matrix should be given
-      extrinsic_T: [0.0, 0.0, 0.06]
+      extrinsic_T: [0.0, 0.0, 0.16]
       extrinsic_R: [1.0, 0.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]
 
-    filter_size_map: 0.1 #0.5
+    filter_size_map: 1.0 #0.5
 
     topics:
       # Subscribers
@@ -73,5 +73,5 @@
     runtime_pos_log_enable: true
     point_filter_num_for_preprocessing: 1 # If it is set to `1`, full point cloud gonna be publlished
     point_filter_num: 2                   # For pose estimation.
-    max_iteration: 4
+    max_iteration: 8 #4
     cube_side_length: 1000.0
