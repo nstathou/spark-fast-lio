@@ -22,11 +22,7 @@
       b_gyr_cov: 0.0001
       fov_degree: 120.0
       det_range: 100.0
-<<<<<<< HEAD
       extrinsic_est_en: true      # true: enable the online estimation of IMU-LiDAR extrinsic,
-=======
-      extrinsic_est_en: true      # true: enable the online estimation of IMU-LiDAR extrinsic,
->>>>>>> 915fd4e13f7c6539e567e95dbc0d809d9d4c8d15
 
       # NOTE(hlim): In `vbr_calib.yaml`, it says:
       #imu:
@@ -42,11 +38,7 @@
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]
 
-<<<<<<< HEAD
     filter_size_map: 0.5
-=======
-    filter_size_map: 1.0 #0.5
->>>>>>> 915fd4e13f7c6539e567e95dbc0d809d9d4c8d15
 
     topics:
       # Subscribers
