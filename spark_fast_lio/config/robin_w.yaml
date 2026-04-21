@@ -3,7 +3,9 @@
     common:
       lidar_frame: "seyond"
       imu_frame: "vectornav"
-
+      map_frame: "odom"
+      base_frame: "vectornav"
+      
     gravity_alignment:
       enable_gravity_alignment: true
 
