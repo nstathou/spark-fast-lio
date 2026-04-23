@@ -1,23 +1,28 @@
 /**:
   ros__parameters:
     common:
-      lidar_frame: "seyond"
+      lidar_frame: "os_sensor"
       imu_frame: "vectornav"
       map_frame: "odom"
-      base_frame: "vectornav"
+      base_frame: "base_link"
       # Frame in which odometry, TF child, and registered clouds are expressed.
-      # Options: "imu" | "lidar" | "base"
-      visualization_frame: "imu"
+      # Options:
+      #   "imu"   -> publishes map_frame -> imu_frame   (EKF native; no extrinsic applied)
+      #   "lidar" -> publishes map_frame -> lidar_frame (IMU pose composed with IMU->LiDAR extrinsic)
+      #   "base"  -> publishes map_frame -> base_frame  (IMU pose composed with IMU->base extrinsic;
+      #                                                  requires base_frame set and base->lidar TF available)
+      visualization_frame: "base"
 
-      # When true, spark-fast-lio broadcasts these as static TFs itself and skips
-      # looking up base->lidar from the TF tree. If BOTH flags are true, the
-      # IMU->LiDAR extrinsic (mapping.extrinsic_T/R) is auto-derived.
-      publish_base_to_lidar_tf: false
-      base_T_lidar: [0.0, 0.0, 0.0]
+      # Optional: let spark-fast-lio broadcast base_frame->lidar_frame and base_frame->imu_frame
+      # as static TFs itself (instead of relying on URDF / ouster driver / external publishers).
+      # When BOTH flags below are true, mapping.extrinsic_T/R (IMU->LiDAR) is auto-derived from
+      # these matrices and the values in mapping.extrinsic_T/R are ignored.
+      publish_base_to_lidar_tf: true
+      base_T_lidar: [0.0, 0.0, 0.16]
       base_R_lidar: [1.0, 0.0, 0.0,
                      0.0, 1.0, 0.0,
                      0.0, 0.0, 1.0]
-      publish_base_to_imu_tf: false
+      publish_base_to_imu_tf: true
       base_T_imu: [0.0, 0.0, 0.0]
       base_R_imu: [1.0, 0.0, 0.0,
                    0.0, 1.0, 0.0,
@@ -29,18 +34,18 @@
 
     preprocess:
       lidar_type: 3               # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR,
-      scan_line: 192
+      scan_line: 32
       scan_rate: 10               # only need to be set for velodyne, unit: Hz,
       timestamp_unit: 3           # the unit of time/t field in the PointCloud2 rostopic: 0-second, 1-milisecond, 2-microsecond, 3-nanosecond.
-      blind: 1.0
-      blind_for_human_pilot: 1.0  # This parameter is to reject cloud points from human pilots
+      blind: 4.0
+      blind_for_human_pilot: 4.0  # This parameter is to reject cloud points from human pilots
 
     mapping:
       acc_cov: 0.1
       gyr_cov: 0.1
       b_acc_cov: 0.0001
       b_gyr_cov: 0.0001
-      fov_degree: 120.0
+      fov_degree: 360.0
       det_range: 120.0
       extrinsic_est_en: false      # true: enable the online estimation of IMU-LiDAR extrinsic,
 
@@ -62,7 +67,7 @@
 
     topics:
       # Subscribers
-      lidar: "/iv_points"
+      lidar: "/spot/ouster/points"
       imu: "/vectornav/imu"
       # Publishers
       cloud_registered: "fast_lio/cloud_registered"
