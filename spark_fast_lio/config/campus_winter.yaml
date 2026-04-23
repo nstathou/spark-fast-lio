@@ -5,6 +5,23 @@
       imu_frame: "vectornav"
       map_frame: "odom"
       base_frame: "vectornav"
+      # Frame in which odometry, TF child, and registered clouds are expressed.
+      # Options: "imu" | "lidar" | "base"
+      visualization_frame: "imu"
+
+      # When true, spark-fast-lio broadcasts these as static TFs itself and skips
+      # looking up base->lidar from the TF tree. If BOTH flags are true, the
+      # IMU->LiDAR extrinsic (mapping.extrinsic_T/R) is auto-derived.
+      publish_base_to_lidar_tf: false
+      base_T_lidar: [0.0, 0.0, 0.0]
+      base_R_lidar: [1.0, 0.0, 0.0,
+                     0.0, 1.0, 0.0,
+                     0.0, 0.0, 1.0]
+      publish_base_to_imu_tf: false
+      base_T_imu: [0.0, 0.0, 0.0]
+      base_R_imu: [1.0, 0.0, 0.0,
+                   0.0, 1.0, 0.0,
+                   0.0, 0.0, 1.0]
 
     gravity_alignment:
       enable_gravity_alignment: false

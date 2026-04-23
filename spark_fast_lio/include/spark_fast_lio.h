@@ -16,6 +16,7 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -167,6 +168,7 @@ class SPARKFastLIO2 : public rclcpp::Node {
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_path_;
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
@@ -295,6 +297,14 @@ class SPARKFastLIO2 : public rclcpp::Node {
   std::vector<double> extrinT_{0.0, 0.0, 0.0};
   std::vector<double> extrinR_{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
   double extrinsics_timeout_s_ = 10.0;
+
+  // base_link -> sensor static TFs: optionally published by this node
+  bool publish_base_to_lidar_tf_ = false;
+  bool publish_base_to_imu_tf_   = false;
+  std::vector<double> base_T_lidar_{0.0, 0.0, 0.0};
+  std::vector<double> base_R_lidar_{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+  std::vector<double> base_T_imu_{0.0, 0.0, 0.0};
+  std::vector<double> base_R_imu_{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 
   std::deque<double> time_buffer_;
   std::deque<PointCloudXYZI::Ptr> lidar_buffer_;

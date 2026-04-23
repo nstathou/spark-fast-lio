@@ -4,7 +4,29 @@
       lidar_frame: "os_sensor"
       imu_frame: "vectornav"
       map_frame: "odom"
-      base_frame: "vectornav"
+      base_frame: "base_link"
+      # Frame in which odometry, TF child, and registered clouds are expressed.
+      # Options:
+      #   "imu"   -> publishes map_frame -> imu_frame   (EKF native; no extrinsic applied)
+      #   "lidar" -> publishes map_frame -> lidar_frame (IMU pose composed with IMU->LiDAR extrinsic)
+      #   "base"  -> publishes map_frame -> base_frame  (IMU pose composed with IMU->base extrinsic;
+      #                                                  requires base_frame set and base->lidar TF available)
+      visualization_frame: "base"
+
+      # Optional: let spark-fast-lio broadcast base_frame->lidar_frame and base_frame->imu_frame
+      # as static TFs itself (instead of relying on URDF / ouster driver / external publishers).
+      # When BOTH flags below are true, mapping.extrinsic_T/R (IMU->LiDAR) is auto-derived from
+      # these matrices and the values in mapping.extrinsic_T/R are ignored.
+      publish_base_to_lidar_tf: true
+      base_T_lidar: [0.0, 0.0, 0.16]
+      base_R_lidar: [1.0, 0.0, 0.0,
+                     0.0, 1.0, 0.0,
+                     0.0, 0.0, 1.0]
+      publish_base_to_imu_tf: true
+      base_T_imu: [0.0, 0.0, 0.0]
+      base_R_imu: [1.0, 0.0, 0.0,
+                   0.0, 1.0, 0.0,
+                   0.0, 0.0, 1.0]
 
 
     gravity_alignment:

@@ -86,6 +86,46 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   extrinT_ = declare_parameter<std::vector<double>>("mapping.extrinsic_T", extrinT_);
   extrinR_ = declare_parameter<std::vector<double>>("mapping.extrinsic_R", extrinR_);
 
+  // Optional: this node publishes static base_frame -> {lidar,imu}_frame TFs directly,
+  // instead of relying on an external publisher (URDF, ouster driver, etc.).
+  publish_base_to_lidar_tf_ =
+      declare_parameter<bool>("common.publish_base_to_lidar_tf", false);
+  publish_base_to_imu_tf_ = declare_parameter<bool>("common.publish_base_to_imu_tf", false);
+  base_T_lidar_ = declare_parameter<std::vector<double>>("common.base_T_lidar", base_T_lidar_);
+  base_R_lidar_ = declare_parameter<std::vector<double>>("common.base_R_lidar", base_R_lidar_);
+  base_T_imu_   = declare_parameter<std::vector<double>>("common.base_T_imu", base_T_imu_);
+  base_R_imu_   = declare_parameter<std::vector<double>>("common.base_R_imu", base_R_imu_);
+
+  // If both base->lidar and base->imu matrices are known, auto-derive the
+  // IMU->LiDAR extrinsic used by the EKF (overriding mapping.extrinsic_T/R).
+  // T_imu_lidar = T_imu_base * T_base_lidar, with T_imu_base = T_base_imu^{-1}.
+  if (publish_base_to_lidar_tf_ && publish_base_to_imu_tf_ && base_T_lidar_.size() == 3 &&
+      base_R_lidar_.size() == 9 && base_T_imu_.size() == 3 && base_R_imu_.size() == 9) {
+    Eigen::Vector3d t_bl(base_T_lidar_[0], base_T_lidar_[1], base_T_lidar_[2]);
+    Eigen::Matrix3d R_bl;
+    R_bl << base_R_lidar_[0], base_R_lidar_[1], base_R_lidar_[2], base_R_lidar_[3],
+        base_R_lidar_[4], base_R_lidar_[5], base_R_lidar_[6], base_R_lidar_[7], base_R_lidar_[8];
+    Eigen::Vector3d t_bi(base_T_imu_[0], base_T_imu_[1], base_T_imu_[2]);
+    Eigen::Matrix3d R_bi;
+    R_bi << base_R_imu_[0], base_R_imu_[1], base_R_imu_[2], base_R_imu_[3], base_R_imu_[4],
+        base_R_imu_[5], base_R_imu_[6], base_R_imu_[7], base_R_imu_[8];
+
+    const Eigen::Matrix3d R_bi_T = R_bi.transpose();
+    const Eigen::Matrix3d R_il   = R_bi_T * R_bl;
+    const Eigen::Vector3d t_il   = R_bi_T * (t_bl - t_bi);
+
+    extrinT_ = {t_il(0), t_il(1), t_il(2)};
+    extrinR_ = {R_il(0, 0), R_il(0, 1), R_il(0, 2), R_il(1, 0), R_il(1, 1),
+                R_il(1, 2), R_il(2, 0), R_il(2, 1), R_il(2, 2)};
+
+    RCLCPP_INFO(this->get_logger(),
+                "Auto-derived IMU->LiDAR extrinsic from base_T_lidar and base_T_imu: "
+                "T=[%.3f, %.3f, %.3f]",
+                t_il(0),
+                t_il(1),
+                t_il(2));
+  }
+
   auto g_vec = declare_parameter<std::vector<double>>("gravity_alignment.g_base", {0.0, 0.0, -1.0});
   g_base_ << g_vec[0], g_vec[1], g_vec[2];
 
@@ -129,9 +169,10 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   pub_path_      = create_publisher<nav_msgs::msg::Path>(topic_path, qos);
   path_msg_.header.frame_id = map_frame_;
 
-  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
-  tf_buffer_      = std::make_shared<tf2_ros::Buffer>(this->get_clock());
-  tf_listener_    = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  tf_broadcaster_        = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+  static_tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+  tf_buffer_             = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_           = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   preprocessor_        = std::make_shared<Preprocess>();
   preprocessor_->blind = declare_parameter<double>("preprocess.blind", 0.01);
@@ -195,9 +236,47 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   }
 
   if (!base_frame_.empty()) {
-    if (!lookupBaseExtrinsics(lidar_T_wrt_base_, lidar_R_wrt_base_)) {
-      RCLCPP_ERROR(this->get_logger(), "Failed to lookup transform.");
-      return;
+    auto broadcast_static = [this](const std::string &parent,
+                                   const std::string &child,
+                                   const std::vector<double> &t,
+                                   const std::vector<double> &r) {
+      geometry_msgs::msg::TransformStamped msg;
+      msg.header.stamp            = this->now();
+      msg.header.frame_id         = parent;
+      msg.child_frame_id          = child;
+      msg.transform.translation.x = t[0];
+      msg.transform.translation.y = t[1];
+      msg.transform.translation.z = t[2];
+      Eigen::Matrix3d R;
+      R << r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8];
+      Eigen::Quaterniond q(R);
+      q.normalize();
+      msg.transform.rotation.x = q.x();
+      msg.transform.rotation.y = q.y();
+      msg.transform.rotation.z = q.z();
+      msg.transform.rotation.w = q.w();
+      static_tf_broadcaster_->sendTransform(msg);
+      RCLCPP_INFO(this->get_logger(),
+                  "Published static TF %s -> %s",
+                  parent.c_str(),
+                  child.c_str());
+    };
+
+    if (publish_base_to_lidar_tf_ && base_T_lidar_.size() == 3 && base_R_lidar_.size() == 9) {
+      broadcast_static(base_frame_, lidar_frame_, base_T_lidar_, base_R_lidar_);
+      lidar_T_wrt_base_ << base_T_lidar_[0], base_T_lidar_[1], base_T_lidar_[2];
+      lidar_R_wrt_base_ << base_R_lidar_[0], base_R_lidar_[1], base_R_lidar_[2],
+          base_R_lidar_[3], base_R_lidar_[4], base_R_lidar_[5], base_R_lidar_[6],
+          base_R_lidar_[7], base_R_lidar_[8];
+    } else {
+      if (!lookupBaseExtrinsics(lidar_T_wrt_base_, lidar_R_wrt_base_)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to lookup transform.");
+        return;
+      }
+    }
+
+    if (publish_base_to_imu_tf_ && base_T_imu_.size() == 3 && base_R_imu_.size() == 9) {
+      broadcast_static(base_frame_, imu_frame_, base_T_imu_, base_R_imu_);
     }
   }
 
