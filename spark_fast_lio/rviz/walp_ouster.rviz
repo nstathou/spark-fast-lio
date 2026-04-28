@@ -8,11 +8,13 @@ Panels:
         - /Status1
         - /F-LIO curr scan1/Topic1
         - /F-LIO pose1/Shape1
+        - /F-LIO path1
         - /KM-SAM curr scan1/Topic1
         - /KM-SAM curr scan1/Autocompute Value Bounds1
         - /KM-SAM global map1/Autocompute Value Bounds1
         - /TF1/Tree1
         - /InLiER keypoints1/Status1
+        - /Pose1
       Splitter Ratio: 0.6134020686149597
     Tree Height: 895
   - Class: rviz_common/Selection
@@ -135,7 +137,7 @@ Visualization Manager:
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 0.5
+      Line Width: 0.25
       Name: F-LIO path
       Offset:
         X: 0
@@ -152,7 +154,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fast_lio/path
+        Value: /walp/fast_lio/path
       Value: true
     - Alpha: 0.20000000298023224
       Autocompute Intensity Bounds: true
@@ -216,7 +218,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/curr_scan
+        Value: /walp/ouster/points
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -249,7 +251,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/global_map
+        Value: /walp/km_sam/global_map
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -270,7 +272,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: true
-      Enabled: true
+      Enabled: false
       Keep: 1
       Name: KM-SAM last pose
       Position Tolerance: 0.10000000149011612
@@ -290,8 +292,8 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/odom_corrected
-      Value: true
+        Value: /walp/fast_lio/odometry
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz_default_plugins/Path
@@ -329,7 +331,7 @@ Visualization Manager:
       Head Length: 0.20000000298023224
       Length: 1
       Line Style: Billboards
-      Line Width: 0.5
+      Line Width: 0.25
       Name: KM-SAM corr
       Offset:
         X: 0
@@ -346,7 +348,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/path/corrected
+        Value: /walp/km_sam/path/corrected
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -517,14 +519,14 @@ Visualization Manager:
       Enabled: true
       Name: KM-SAM loop nodes
       Namespaces:
-        {}
+        "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/loop_detection
+        Value: /walp/km_sam/loop_detection
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -536,7 +538,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /km_sam/loop_detection_array
+        Value: /walp/km_sam/loop_detection_array
       Value: true
     - Class: rviz_default_plugins/Marker
       Enabled: false
@@ -640,7 +642,7 @@ Visualization Manager:
       Color: 255; 163; 72
       Color Transformer: FlatColor
       Decay Time: 10
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -660,9 +662,9 @@ Visualization Manager:
         Value: /inlier/keypoints
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
+      Enabled: false
       Name: InLiER nodes
       Namespaces:
         {}
@@ -672,7 +674,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /inlier/match_nodes
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -685,7 +687,7 @@ Visualization Manager:
       Color: 255; 120; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -705,11 +707,31 @@ Visualization Manager:
         Value: /inlier/debug/submap
       Use Fixed Frame: true
       Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.5
+      Class: rviz_default_plugins/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /walp/km_sam/pose_stamped
       Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -752,16 +774,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 627.9073486328125
+      Distance: 86.41795349121094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -40.74092102050781
-        Y: 69.05339050292969
-        Z: -46.10332489013672
+        X: 10.604866027832031
+        Y: 14.12121868133545
+        Z: -3.524132490158081
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -770,7 +792,7 @@ Visualization Manager:
       Pitch: 1.5697963237762451
       Target Frame: map
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.020400546491146088
+      Yaw: 1.5403971672058105
     Saved: ~
 Window Geometry:
   Displays:

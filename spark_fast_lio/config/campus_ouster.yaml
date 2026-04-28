@@ -30,7 +30,7 @@
 
 
     gravity_alignment:
-      enable_gravity_alignment: false
+      enable_gravity_alignment: true
 
     preprocess:
       lidar_type: 3               # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR,
@@ -46,7 +46,7 @@
       b_acc_cov: 0.0001
       b_gyr_cov: 0.0001
       fov_degree: 360.0
-      det_range: 120.0
+      det_range: 100.0
       extrinsic_est_en: false      # true: enable the online estimation of IMU-LiDAR extrinsic,
 
       # NOTE(hlim): In `vbr_calib.yaml`, it says:
@@ -63,7 +63,7 @@
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0]
 
-    filter_size_map: 1.0 #0.5
+    filter_size_map: 0.75 #0.5
 
     topics:
       # Subscribers
