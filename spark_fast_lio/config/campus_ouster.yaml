@@ -18,7 +18,7 @@
       # When BOTH flags below are true, mapping.extrinsic_T/R (IMU->LiDAR) is auto-derived from
       # these matrices and the values in mapping.extrinsic_T/R are ignored.
       publish_base_to_lidar_tf: true
-      base_T_lidar: [0.0, 0.0, 0.16]
+      base_T_lidar: [0.0, 0.0, 0.0]
       base_R_lidar: [1.0, 0.0, 0.0,
                      0.0, 1.0, 0.0,
                      0.0, 0.0, 1.0]

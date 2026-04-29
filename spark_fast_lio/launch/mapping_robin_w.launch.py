@@ -110,7 +110,7 @@ def generate_launch_description():
                               description='Model-specific configuration'),
         DeclareLaunchArgument('rviz_path', default_value=default_rviz,
                               description='rviz file to load'),
-        DeclareLaunchArgument('use_sim_time', default_value='false',
+        DeclareLaunchArgument('use_sim_time', default_value='true',
                               description='Set true when replaying a bag with --clock'),
         OpaqueFunction(function=launch_setup),
     ])

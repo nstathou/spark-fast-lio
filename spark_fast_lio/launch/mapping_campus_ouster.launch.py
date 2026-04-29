@@ -46,7 +46,7 @@ def generate_launch_description():
                               description='automatically start rviz'),
         DeclareLaunchArgument('config_path', default_value=default_config,
                               description='Model-specific configuration'),
-        DeclareLaunchArgument('use_sim_time', default_value='false',
+        DeclareLaunchArgument('use_sim_time', default_value='true',
                               description='Set true when replaying a bag with --clock'),
         DeclareLaunchArgument('rviz_path', default_value=default_rviz,
                               description='rviz file to load'),
