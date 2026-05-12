@@ -19,6 +19,8 @@ def launch_setup(context, *args, **kwargs):
         name='lio_mapping',
         output='screen',
         on_exit=Shutdown(),
+        sigterm_timeout='600',
+        sigkill_timeout='600',
         parameters=[config_path, {'use_sim_time': use_sim_time}],
     )
 
