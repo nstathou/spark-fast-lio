@@ -21,7 +21,7 @@ def launch_setup(context, *args, **kwargs):
         on_exit=Shutdown(),
         sigterm_timeout='600',
         sigkill_timeout='600',
-        parameters=[config_path, {'use_sim_time': use_sim_time}],
+        parameters=[config_path, {'use_sim_time': use_sim_time}, {'relocalization.status_topic': ''}],
     )
 
     rviz_node = Node(

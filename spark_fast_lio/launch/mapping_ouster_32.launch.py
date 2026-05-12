@@ -63,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
         name='lio_mapping',
         output='screen',
         on_exit=Shutdown(),
-        parameters=[config_path, {'use_sim_time': use_sim_time}],
+        parameters=[config_path, {'use_sim_time': use_sim_time}, {'relocalization.status_topic': ''}],
     )
 
     static_tf_node = Node(
