@@ -252,6 +252,7 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
       full_map_accum_.reset(new PointCloudXYZI());
     }
     if (save_individual_scans_en_) {
+      std::filesystem::create_directories(pcd_save_path_ + "/scans");
       poses_file_odom_.open(pcd_save_path_ + "/poses_odom.txt");
       poses_file_odom_ << "# timestamp_ns tx ty tz qx qy qz qw" << std::endl;
       poses_file_odom_ << std::fixed << std::setprecision(6);
@@ -1038,7 +1039,7 @@ void SPARKFastLIO2::publishFrameWorld(
       if (cloud_to_be_saved_->size() > 0 && scan_wait_num >= pcd_save_interval_) {
         pcd_index_++;
         std::string pcd_file =
-            pcd_save_path_ + "/" + std::to_string(window_stamp_ns) + ".pcd";
+            pcd_save_path_ + "/scans/" + std::to_string(window_stamp_ns) + ".pcd";
         pcl::PCDWriter pcd_writer;
         pcd_writer.writeBinary(pcd_file, *cloud_to_be_saved_);
         cloud_to_be_saved_->clear();
