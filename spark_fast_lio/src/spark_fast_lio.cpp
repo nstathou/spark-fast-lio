@@ -92,6 +92,8 @@ SPARKFastLIO2::SPARKFastLIO2(const rclcpp::NodeOptions &options)
   pcd_save_en_              = declare_parameter<bool>("pcd_save.pcd_save_en", false);
   pcd_save_path_            = declare_parameter<std::string>("pcd_save.save_path", "");
   pcd_save_interval_        = declare_parameter<int>("pcd_save.interval", -1);
+  pcd_save_min_trans_m_     = declare_parameter<double>("pcd_save.min_translation_m", 0.0);
+  pcd_save_min_yaw_deg_     = declare_parameter<double>("pcd_save.min_yaw_deg", 0.0);
   full_map_voxel_size_      = declare_parameter<double>("pcd_save.full_map_voxel_size", 0.2);
   save_individual_scans_en_ = declare_parameter<bool>("pcd_save.save_individual_scans", false);
   reloc_map_frame_          = declare_parameter<std::string>("relocalization.map_frame", "");
@@ -993,6 +995,27 @@ void SPARKFastLIO2::publishFrameWorld(
       static Eigen::Quaterniond window_quat = Eigen::Quaterniond::Identity();
       static Eigen::Isometry3d window_map_T_odom = Eigen::Isometry3d::Identity();
       static bool window_has_map_T_odom = false;
+      static Eigen::Vector3d last_added_pos = Eigen::Vector3d::Zero();
+      static Eigen::Quaterniond last_added_quat = Eigen::Quaterniond::Identity();
+      static bool has_last_added = false;
+
+      // Motion gate: skip this scan if it hasn't moved/rotated enough since the
+      // last accepted scan. Disabled when both thresholds are <= 0.
+      const bool motion_gate_en =
+          (pcd_save_min_trans_m_ > 0.0) || (pcd_save_min_yaw_deg_ > 0.0);
+      if (motion_gate_en && has_last_added) {
+        const auto qc_now = latest_state_.rot.coeffs();
+        Eigen::Quaterniond q_now(qc_now[3], qc_now[0], qc_now[1], qc_now[2]);
+        const double d_trans = (latest_state_.pos - last_added_pos).norm();
+        Eigen::Quaterniond dq = last_added_quat.conjugate() * q_now;
+        const double yaw_diff = std::atan2(
+            2.0 * (dq.w() * dq.z() + dq.x() * dq.y()),
+            1.0 - 2.0 * (dq.y() * dq.y() + dq.z() * dq.z()));
+        const double d_yaw_deg = std::abs(yaw_diff) * 180.0 / M_PI;
+        if (d_trans < pcd_save_min_trans_m_ && d_yaw_deg < pcd_save_min_yaw_deg_) {
+          return;
+        }
+      }
 
       if (scan_wait_num == 0) {
         // First scan of this accumulation window: latch stamp + pose.
@@ -1006,6 +1029,12 @@ void SPARKFastLIO2::publishFrameWorld(
 
       *cloud_to_be_saved_ += *laserCloudWorld2;
       scan_wait_num++;
+      {
+        const auto qc_acc = latest_state_.rot.coeffs();
+        last_added_pos    = latest_state_.pos;
+        last_added_quat   = Eigen::Quaterniond(qc_acc[3], qc_acc[0], qc_acc[1], qc_acc[2]);
+        has_last_added    = true;
+      }
       if (cloud_to_be_saved_->size() > 0 && scan_wait_num >= pcd_save_interval_) {
         pcd_index_++;
         std::string pcd_file =

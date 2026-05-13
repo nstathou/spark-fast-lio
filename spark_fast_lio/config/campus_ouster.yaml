@@ -30,7 +30,7 @@
 
 
     gravity_alignment:
-      enable_gravity_alignment: false
+      enable_gravity_alignment: true
 
     preprocess:
       lidar_type: 3               # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR,
@@ -88,11 +88,13 @@
       map_pub_interval: 10          # publish map every N scans (0 to disable)
 
     pcd_save:
-      pcd_save_en: false              # if true: accumulate all scans and write a single downsampled full_map.pcd at shutdown
-      save_path: ""                   # directory to save scans and poses (empty = <package>/PCD)
+      pcd_save_en: true              # if true: accumulate all scans and write a single downsampled full_map.pcd at shutdown
+      save_path: "/home/niksta/Documents/datasets/campus_ouster_flio/"                   # directory to save scans and poses (empty = <package>/PCD)
       full_map_voxel_size: 0.2        # voxel size for the full accumulated map written on shutdown
-      save_individual_scans: false    # if true: save per-interval scan pcds + poses_odom.txt (+ poses_map.txt when relocalized)
-      interval: 1                     # how many LiDAR frames merged into each individual scan pcd
+      save_individual_scans: true    # if true: save per-interval scan pcds + poses_odom.txt (+ poses_map.txt when relocalized)
+      interval: 40                     # how many LiDAR frames merged into each individual scan pcd
+      min_translation_m: 0.25           # skip scans whose pose moved less than this (m) since last accepted scan (0 disables)
+      min_yaw_deg: 10.0                 # skip scans whose yaw changed less than this (deg) since last accepted scan (0 disables)
 
     relocalization:
       map_file: "/home/niksta/Documents/datasets/campus_robinw/campus_robinw_map.pcd"                              # absolute path to prior map .pcd

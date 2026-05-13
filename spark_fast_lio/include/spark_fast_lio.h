@@ -281,6 +281,8 @@ class SPARKFastLIO2 : public rclcpp::Node {
   int NUM_MAX_ITERATIONS_       = 0;
   int laserCloudValidNum_       = 0;
   int pcd_save_interval_        = -1;
+  double pcd_save_min_trans_m_  = 0.0;
+  double pcd_save_min_yaw_deg_  = 0.0;
   int pcd_index_                = 0;
   int map_pub_interval_         = 10;
   int point_filter_num_         = 4;  // empirically, 4 showed the best performance
